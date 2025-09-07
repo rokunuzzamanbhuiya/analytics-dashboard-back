@@ -49,6 +49,15 @@ app.get("/api/customers", async (req, res) => {
   }
 });
 
+// Best-selling endpoint
+app.get("/api/best-selling", async (req, res) => {
+  const response = await axios.get(
+    "https://your-store.myshopify.com/admin/api/2025-01/reports.json",
+    { headers: { "X-Shopify-Access-Token": process.env.SHOPIFY_ACCESS_TOKEN } }
+  );
+  res.json(response.data.reports); // adapt shape
+});
+
 app.listen(PORT, () => console.log(`✅ Server is running on port ${PORT}`));
 
 // const express = require("express");
