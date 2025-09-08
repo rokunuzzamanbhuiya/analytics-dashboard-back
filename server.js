@@ -85,7 +85,7 @@ const shopify = axios.create({
 // Orders endpoint
 app.get("/api/orders", async (req, res) => {
   try {
-    const { data } = await shopify.get("orders.json?status=any&limit=50");
+    const { data } = await shopify.get("orders.json?status=any&limit=10");
     console.log("✅ Orders fetched:", data.orders?.length || 0);
     res.json(data.orders);
   } catch (err) {
@@ -100,7 +100,7 @@ app.get("/api/orders", async (req, res) => {
 app.get("/api/orders/pending", async (req, res) => {
   try {
     const { data } = await shopify.get(
-      "orders.json?fulfillment_status=unfulfilled&status=any&limit=50"
+      "orders.json?fulfillment_status=unfulfilled&status=any&limit=10"
     );
     console.log("✅ Pending orders:", data.orders?.length || 0);
     res.json(data.orders);
@@ -118,7 +118,7 @@ app.get("/api/orders/pending", async (req, res) => {
 // Products endpoint
 app.get("/api/products", async (req, res) => {
   try {
-    const { data } = await shopify.get("products.json?limit=50");
+    const { data } = await shopify.get("products.json?limit=10");
     console.log("✅ Products fetched:", data.products?.length || 0);
     res.json(data.products);
   } catch (err) {
@@ -132,7 +132,7 @@ app.get("/api/products", async (req, res) => {
 // Low stock products (<=5 qty)
 app.get("/api/products/low-stock", async (req, res) => {
   try {
-    const { data } = await shopify.get("products.json?limit=100");
+    const { data } = await shopify.get("products.json?limit=10");
     const lowStock = [];
 
     data.products.forEach((product) => {
@@ -165,7 +165,7 @@ app.get("/api/products/low-stock", async (req, res) => {
 // Customers endpoint
 app.get("/api/customers", async (req, res) => {
   try {
-    const { data } = await shopify.get("customers.json?limit=50");
+    const { data } = await shopify.get("customers.json?limit=10");
     console.log("✅ Customers fetched:", data.customers?.length || 0);
     res.json(data.customers);
   } catch (err) {
@@ -179,7 +179,7 @@ app.get("/api/customers", async (req, res) => {
 // Best-selling products (Top 10 by quantity sold)
 app.get("/api/best-selling", async (req, res) => {
   try {
-    const { data } = await shopify.get("orders.json?status=any&limit=250");
+    const { data } = await shopify.get("orders.json?status=any&limit=10");
     const productSales = {};
 
     data.orders.forEach((order) => {
@@ -211,7 +211,7 @@ app.get("/api/best-selling", async (req, res) => {
 // Worst-selling products (Bottom 10)
 app.get("/api/worst-selling", async (req, res) => {
   try {
-    const { data } = await shopify.get("orders.json?status=any&limit=250");
+    const { data } = await shopify.get("orders.json?status=any&limit=10");
     const productSales = {};
 
     data.orders.forEach((order) => {
