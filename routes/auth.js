@@ -21,6 +21,13 @@ router.post('/callback', async (req, res) => {
       });
     }
 
+    // Check for required OAuth environment variables
+    if (!process.env.SHOPIFY_API_KEY || !process.env.SHOPIFY_API_SECRET) {
+      return res.status(500).json({ 
+        error: 'OAuth configuration missing. Please set SHOPIFY_API_KEY and SHOPIFY_API_SECRET environment variables.' 
+      });
+    }
+
     // Exchange code for access token
     const tokenResponse = await axios.post(`https://${shop}/admin/oauth/access_token`, {
       client_id: process.env.SHOPIFY_API_KEY,
