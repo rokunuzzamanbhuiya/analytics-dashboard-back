@@ -16,6 +16,7 @@ const customersRoutes = require('./routes/customers');
 const bestSellingRoutes = require('./routes/best-selling');
 const worstSellingRoutes = require('./routes/worst-selling');
 const notificationsRoutes = require('./routes/notifications');
+const authRoutes = require('./routes/auth');
 
 // Use routes
 app.use('/api/orders', ordersRoutes);
@@ -24,6 +25,7 @@ app.use('/api/customers', customersRoutes);
 app.use('/api/best-selling', bestSellingRoutes);
 app.use('/api/worst-selling', worstSellingRoutes);
 app.use('/api/notifications', notificationsRoutes);
+app.use('/api/auth', authRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
