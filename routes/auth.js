@@ -3,6 +3,25 @@ const router = express.Router();
 const crypto = require('crypto');
 const axios = require('axios');
 
+// Validate required OAuth environment variables at startup
+if (!process.env.SHOPIFY_API_KEY || !process.env.SHOPIFY_API_SECRET) {
+  console.error('❌ OAuth configuration missing!');
+  console.error('Required environment variables:');
+  console.error('- SHOPIFY_API_KEY');
+  console.error('- SHOPIFY_API_SECRET');
+  console.error('');
+  console.error('Please set these variables in your environment or .env file.');
+  console.error('For Vercel deployment, add them in your project settings.');
+  
+  // In production, exit the process to prevent running in misconfigured state
+  if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
+    process.exit(1);
+  } else {
+    // In development, just log a warning
+    console.warn('⚠️  OAuth endpoints will not work without proper configuration.');
+  }
+}
+
 // Shopify OAuth callback endpoint
 router.post('/callback', async (req, res) => {
   try {
@@ -18,13 +37,6 @@ router.post('/callback', async (req, res) => {
     if (!shop.endsWith('.myshopify.com')) {
       return res.status(400).json({ 
         error: 'Invalid shop domain' 
-      });
-    }
-
-    // Check for required OAuth environment variables
-    if (!process.env.SHOPIFY_API_KEY || !process.env.SHOPIFY_API_SECRET) {
-      return res.status(500).json({ 
-        error: 'OAuth configuration missing. Please set SHOPIFY_API_KEY and SHOPIFY_API_SECRET environment variables.' 
       });
     }
 
