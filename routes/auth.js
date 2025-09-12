@@ -12,14 +12,6 @@ if (!process.env.SHOPIFY_API_KEY || !process.env.SHOPIFY_API_SECRET) {
   console.error('');
   console.error('Please set these variables in your environment or .env file.');
   console.error('For Vercel deployment, add them in your project settings.');
-  
-  // In production, exit the process to prevent running in misconfigured state
-  if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
-    process.exit(1);
-  } else {
-    // In development, just log a warning
-    console.warn('⚠️  OAuth endpoints will not work without proper configuration.');
-  }
 }
 
 // Shopify OAuth callback endpoint
