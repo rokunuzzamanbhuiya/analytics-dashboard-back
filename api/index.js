@@ -7,23 +7,14 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Import routes
-const ordersRoutes = require('./routes/orders');
-const productsRoutes = require('./routes/products');
-const customersRoutes = require('./routes/customers');
-const bestSellingRoutes = require('./routes/best-selling');
-const worstSellingRoutes = require('./routes/worst-selling');
-const notificationsRoutes = require('./routes/notifications');
-const authRoutes = require('./routes/auth');
-
-// Use routes
-app.use('/api/orders', ordersRoutes);
-app.use('/api/products', productsRoutes);
-app.use('/api/customers', customersRoutes);
-app.use('/api/best-selling', bestSellingRoutes);
-app.use('/api/worst-selling', worstSellingRoutes);
-app.use('/api/notifications', notificationsRoutes);
-app.use('/api/auth', authRoutes);
+// Simple test endpoint
+app.get('/api/test', (req, res) => {
+  res.json({ 
+    message: 'API is working!',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -35,11 +26,26 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'Shopify Analytics Dashboard API',
+    endpoints: [
+      '/api/health',
+      '/api/test'
+    ]
+  });
+});
+
 // 404 handler
 app.use('*', (req, res) => {
   res.status(404).json({ 
     error: 'Route not found',
-    path: req.originalUrl 
+    path: req.originalUrl,
+    availableEndpoints: [
+      '/api/health',
+      '/api/test'
+    ]
   });
 });
 
