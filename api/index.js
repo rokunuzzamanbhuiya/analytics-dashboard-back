@@ -8,13 +8,13 @@ app.use(cors());
 app.use(express.json());
 
 // Import routes
-const ordersRoutes = require('../routes/orders');
-const productsRoutes = require('../routes/products');
-const customersRoutes = require('../routes/customers');
-const bestSellingRoutes = require('../routes/best-selling');
-const worstSellingRoutes = require('../routes/worst-selling');
-const notificationsRoutes = require('../routes/notifications');
-const authRoutes = require('../routes/auth');
+const ordersRoutes = require('./routes/orders');
+const productsRoutes = require('./routes/products');
+const customersRoutes = require('./routes/customers');
+const bestSellingRoutes = require('./routes/best-selling');
+const worstSellingRoutes = require('./routes/worst-selling');
+const notificationsRoutes = require('./routes/notifications');
+const authRoutes = require('./routes/auth');
 
 // Use routes
 app.use('/api/orders', ordersRoutes);
