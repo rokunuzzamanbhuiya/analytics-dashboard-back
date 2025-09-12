@@ -3,20 +3,18 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 dotenv.config();
 
-const { PORT } = process.env;
-
 const app = express();
 app.use(cors());
 app.use(express.json());
 
 // Import routes
-const ordersRoutes = require('./routes/orders');
-const productsRoutes = require('./routes/products');
-const customersRoutes = require('./routes/customers');
-const bestSellingRoutes = require('./routes/best-selling');
-const worstSellingRoutes = require('./routes/worst-selling');
-const notificationsRoutes = require('./routes/notifications');
-const authRoutes = require('./routes/auth');
+const ordersRoutes = require('../routes/orders');
+const productsRoutes = require('../routes/products');
+const customersRoutes = require('../routes/customers');
+const bestSellingRoutes = require('../routes/best-selling');
+const worstSellingRoutes = require('../routes/worst-selling');
+const notificationsRoutes = require('../routes/notifications');
+const authRoutes = require('../routes/auth');
 
 // Use routes
 app.use('/api/orders', ordersRoutes);
@@ -56,7 +54,5 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start server
-app.listen(PORT, () =>
-  console.log(`🚀 Backend running at http://localhost:${PORT}`)
-);
+// Export the Express app for Vercel
+module.exports = app;
