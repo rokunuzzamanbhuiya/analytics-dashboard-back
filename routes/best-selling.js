@@ -1,33 +1,40 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { shopify, SHOPIFY_STORE_DOMAIN } = require('../config/shopify');
-const { calculateProductSales, getProductDetails } = require('../utils/productHelpers');
+const { shopify, SHOPIFY_STORE_DOMAIN } = require("../config/shopify");
+const { calculateProductSales } = require("../utils/productHelpers");
 
-// Best-selling products (Top 10 by quantity sold across all orders)
-router.get('/', async (req, res) => {
+// Best-selling products (Top 10 by sales quantity)
+router.get("/", async (req, res) => {
   try {
-    // Get more orders to get accurate best-selling data
-    const { data: ordersData } = await shopify.get("orders.json?status=any&limit=250");
+    // Get all products
+    const { data: productsData } = await shopify.get("products.json?limit=250");
+    const allProducts = productsData?.products || [];
+
+    // Get sales data from orders
+    const { data: ordersData } = await shopify.get(
+      "orders.json?status=any&limit=250"
+    );
     const orders = ordersData?.orders || [];
     const productSales = calculateProductSales(orders);
 
-    // Sort by quantity (descending) to get best-selling first
-    const sorted = Object.values(productSales).sort(
-      (a, b) => b.quantity - a.quantity
-    );
+    // Attach sales count to each product
+    const productsWithSales = allProducts.map((product) => {
+      const productId = product.id;
+      return {
+        id: productId,
+        name: product.title,
+        quantity: productSales[productId] || 0, // 0 if no sales
+        handle: product.handle,
+        admin_url: `https://${SHOPIFY_STORE_DOMAIN}/admin/products/${productId}`,
+        public_url: `https://${SHOPIFY_STORE_DOMAIN}/products/${product.handle}`,
+      };
+    });
 
-    // Get product details for top 10 products
-    const productIds = sorted.slice(0, 10).map(product => product.id);
-    const productDetails = await getProductDetails(productIds, shopify, SHOPIFY_STORE_DOMAIN);
+    // Sort by quantity (descending → best selling first)
+    const sorted = productsWithSales.sort((a, b) => b.quantity - a.quantity);
 
-    // Combine sales data with product details
-    const result = sorted.slice(0, 10).map(product => ({
-      id: product.id,
-      name: product.name,
-      quantity: product.quantity,
-      admin_url: productDetails[product.id]?.admin_url || `https://${SHOPIFY_STORE_DOMAIN}/admin/products/${product.id}`,
-      public_url: productDetails[product.id]?.public_url || `https://${SHOPIFY_STORE_DOMAIN}/products/${product.handle || 'unknown'}`
-    }));
+    // Top 10 products
+    const result = sorted.slice(0, 10);
 
     console.log("✅ Best-selling count:", result.length);
     res.json(result);
