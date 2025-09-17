@@ -82,32 +82,33 @@ class ProductController {
     try {
       const { limit = 10 } = req.query;
       
-      // Get orders to calculate sales
+      // Get all products first (same approach as worst-selling)
+      const productsData = await ShopifyService.getProducts(250);
+      const allProducts = productsData?.products || [];
+      
+      // Get sales data from orders
       const ordersData = await ShopifyService.getOrders(250);
       const orders = ordersData?.orders || [];
-      
       const productSales = calculateProductSales(orders);
       
-      // Sort by quantity (descending)
-      const sorted = Object.values(productSales).sort(
-        (a, b) => b.quantity - a.quantity
-      );
-      
-      // Get product details for top products
-      const productIds = sorted.slice(0, parseInt(limit)).map(product => product.id);
-      const productDetails = await getProductDetails(productIds, ShopifyService, SHOPIFY_STORE_DOMAIN);
-      
-      // Combine sales data with product details
-      const result = sorted.slice(0, parseInt(limit)).map(product => ({
+      // Create array with all products and their sales (0 if never sold)
+      const productsWithSales = allProducts.map(product => ({
         id: product.id,
-        name: product.name,
+        name: product.title,
         product_id: product.id,
-        total_sold: product.quantity,
-        revenue: product.quantity * (product.price || 0), // Approximate revenue
+        total_sold: productSales[product.id]?.quantity || 0,
+        revenue: (productSales[product.id]?.quantity || 0) * (product.variants?.[0]?.price || 0),
         currency: 'USD',
-        admin_url: productDetails[product.id]?.admin_url || `https://${SHOPIFY_STORE_DOMAIN}/admin/products/${product.id}`,
-        public_url: productDetails[product.id]?.public_url || `https://${SHOPIFY_STORE_DOMAIN}/products/${product.handle || 'unknown'}`
+        admin_url: `https://${SHOPIFY_STORE_DOMAIN}/admin/products/${product.id}`,
+        public_url: `https://${SHOPIFY_STORE_DOMAIN}/products/${product.handle}`
       }));
+      
+      // Filter out products with 0 sales and sort by quantity (descending) to get best-selling first
+      const productsWithSalesOnly = productsWithSales.filter(product => product.total_sold > 0);
+      const sorted = productsWithSalesOnly.sort((a, b) => b.total_sold - a.total_sold);
+      
+      // Return top products (best-selling)
+      const result = sorted.slice(0, parseInt(limit));
       
       console.log(`✅ Best selling products: ${result.length}`);
       

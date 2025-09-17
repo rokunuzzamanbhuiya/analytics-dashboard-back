@@ -62,19 +62,38 @@ async function getProductDetails(productIds, shopify, SHOPIFY_STORE_DOMAIN) {
   
   if (productIds.length > 0) {
     try {
+      console.log(`🔍 Fetching details for ${productIds.length} products:`, productIds);
+      
+      // Convert product IDs to strings and ensure they're properly formatted
+      const formattedIds = productIds.map(id => String(id));
+      
       const { data: productsData } = await shopify.get(
-        `products.json?ids=${productIds.join(',')}`
+        `products.json?ids=${formattedIds.join(',')}`
       );
       
-      productsData.products.forEach(product => {
-        productDetails[product.id] = {
-          handle: product.handle,
-          admin_url: `https://${SHOPIFY_STORE_DOMAIN}/admin/products/${product.id}`,
-          public_url: `https://${SHOPIFY_STORE_DOMAIN}/products/${product.handle}`
-        };
-      });
+      console.log(`📦 Received ${productsData.products?.length || 0} product details`);
+      
+      if (productsData.products) {
+        productsData.products.forEach(product => {
+          productDetails[product.id] = {
+            handle: product.handle,
+            admin_url: `https://${SHOPIFY_STORE_DOMAIN}/admin/products/${product.id}`,
+            public_url: product.handle ? `https://${SHOPIFY_STORE_DOMAIN}/products/${product.handle}` : null
+          };
+        });
+      }
+      
+      // Log which products were found and which were missing
+      const foundIds = Object.keys(productDetails);
+      const missingIds = formattedIds.filter(id => !foundIds.includes(String(id)));
+      if (missingIds.length > 0) {
+        console.warn(`⚠️ Could not find details for ${missingIds.length} products:`, missingIds);
+      }
+      
     } catch (productErr) {
       console.warn("⚠️ Could not fetch product details:", productErr.message);
+      console.warn("⚠️ Product IDs that failed:", productIds);
+      console.warn("⚠️ Error details:", productErr.response?.data || productErr);
     }
   }
 
