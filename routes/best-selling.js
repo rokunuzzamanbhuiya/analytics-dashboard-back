@@ -1,10 +1,10 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { shopify, SHOPIFY_STORE_DOMAIN } = require('../config/shopify');
-const { calculateProductSales, getProductDetails } = require('../utils/productHelpers');
+const { shopify, SHOPIFY_STORE_DOMAIN } = require("../config/shopify");
+const { calculateProductSales } = require("../utils/productHelpers");
 
-// Best-selling products (Top 10 by quantity sold across all orders)
-router.get('/', async (req, res) => {
+// Best-selling products (Top 10 by sales quantity)
+router.get("/", async (req, res) => {
   try {
     // Get all products first (same approach as worst-selling)
     const { data: productsData } = await shopify.get("products.json?limit=250");
@@ -24,6 +24,7 @@ router.get('/', async (req, res) => {
       admin_url: `https://${SHOPIFY_STORE_DOMAIN}/admin/products/${product.id}`,
       public_url: `https://${SHOPIFY_STORE_DOMAIN}/products/${product.handle}`
     }));
+
 
     // Filter out products with 0 sales and sort by quantity (descending) to get best-selling first
     const productsWithSalesOnly = productsWithSales.filter(product => product.quantity > 0);
