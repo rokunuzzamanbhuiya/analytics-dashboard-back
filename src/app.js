@@ -31,7 +31,10 @@ app.set('trust proxy', 1);
 // CORS configuration
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production' 
-    ? process.env.ALLOWED_ORIGINS?.split(',') || ['https://your-frontend-domain.vercel.app']
+    ? process.env.ALLOWED_ORIGINS?.split(',') || [
+        'https://analytics-dashboard-polaris.netlify.app',
+        'https://your-frontend-domain.vercel.app'
+      ]
     : ['http://localhost:3000', 'http://localhost:5173'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
