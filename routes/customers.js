@@ -8,7 +8,7 @@ router.get('/', async (req, res) => {
     const { data } = await shopify.get("customers.json?limit=10");
     const customers = data?.customers || [];
     console.log("✅ Customers fetched:", customers.length);
-    res.json(customers);
+    res.json({ data: customers });
   } catch (err) {
     console.error("❌ Customers Error:", err.response?.data || err.message);
     res

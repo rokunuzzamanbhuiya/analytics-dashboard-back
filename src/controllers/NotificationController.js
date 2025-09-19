@@ -9,6 +9,14 @@ class NotificationController {
   constructor() {
     // In-memory storage for notification states (in production, use a database)
     this.notificationStates = {};
+    console.log('🔔 NotificationController initialized with notificationStates:', !!this.notificationStates);
+    
+    // Bind methods to preserve 'this' context
+    this.getNotifications = this.getNotifications.bind(this);
+    this.markAsRead = this.markAsRead.bind(this);
+    this.archive = this.archive.bind(this);
+    this.markAllAsRead = this.markAllAsRead.bind(this);
+    this.getNotificationStats = this.getNotificationStats.bind(this);
   }
 
   /**
@@ -18,12 +26,27 @@ class NotificationController {
    */
   async getNotifications(req, res) {
     try {
+      console.log('🔔 Starting notifications fetch...');
+      console.log('🔔 this.notificationStates exists:', !!this.notificationStates);
+      console.log('🔔 this context:', typeof this);
+      
+      // Safety check for 'this' context
+      if (!this || !this.notificationStates) {
+        console.error('❌ NotificationController context is not properly bound');
+        return res.status(500).json({
+          success: false,
+          error: 'NotificationController context error'
+        });
+      }
+      
       const { hours = 24, limit = 50 } = req.query;
       
       // Get recent orders from the specified hours
       const hoursAgo = new Date();
       hoursAgo.setHours(hoursAgo.getHours() - parseInt(hours));
       const createdAtMin = hoursAgo.toISOString();
+      
+      console.log(`🔔 Fetching orders from last ${hours} hours (since ${createdAtMin})`);
       
       const data = await ShopifyService.getOrders(
         parseInt(limit), 
@@ -32,18 +55,50 @@ class NotificationController {
         createdAtMin
       );
       
+      console.log('🔔 Orders data received:', data ? 'success' : 'failed');
       const orders = data?.orders || [];
+      console.log(`🔔 Found ${orders.length} orders`);
       
       // Format orders into notification format
-      const notifications = orders.map((order) => {
-        const notification = formatOrderForNotification(order);
-        // Apply stored state if exists
-        if (this.notificationStates[notification.id]) {
-          notification.read = this.notificationStates[notification.id].read;
-          notification.archived = this.notificationStates[notification.id].archived;
+      const notifications = orders.map((order, index) => {
+        try {
+          console.log(`🔔 Processing order ${index + 1}/${orders.length}:`, {
+            id: order.id,
+            name: order.name,
+            customer: order.customer ? 'has customer' : 'no customer',
+            total_price: order.total_price,
+            financial_status: order.financial_status,
+            fulfillment_status: order.fulfillment_status
+          });
+          
+          const notification = formatOrderForNotification(order);
+          
+          // Check if notification was successfully created
+          if (!notification || !notification.id) {
+            console.error('❌ Invalid notification object:', notification);
+            return null;
+          }
+          
+          console.log(`🔔 Formatted notification:`, {
+            id: notification.id,
+            orderId: notification.orderId,
+            customer: notification.customer,
+            orderValue: notification.orderValue
+          });
+          
+          // Apply stored state if exists
+          if (this && this.notificationStates && this.notificationStates[notification.id]) {
+            notification.read = this.notificationStates[notification.id].read;
+            notification.archived = this.notificationStates[notification.id].archived;
+          }
+          return notification;
+        } catch (formatError) {
+          console.error('❌ Error formatting order:', order.id, formatError.message);
+          console.error('❌ Order data:', JSON.stringify(order, null, 2));
+          console.error('❌ Format error stack:', formatError.stack);
+          return null;
         }
-        return notification;
-      });
+      }).filter(Boolean); // Remove null entries
       
       // Sort by creation date (newest first)
       notifications.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -58,6 +113,7 @@ class NotificationController {
       });
     } catch (error) {
       console.error('❌ Notifications Error:', error.message);
+      console.error('❌ Error stack:', error.stack);
       res.status(error.status || 500).json({
         success: false,
         error: error.message,
