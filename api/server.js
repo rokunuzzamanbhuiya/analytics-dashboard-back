@@ -11,9 +11,14 @@ const PORT = process.env.PORT || 3001;
 // Middleware
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://your-frontend-domain.vercel.app'] // Replace with your actual frontend domain
+    ? [
+        'https://analytics-dashboard-polaris.netlify.app',
+        'https://your-frontend-domain.vercel.app'
+      ]
     : ['http://localhost:3000', 'http://localhost:5173'], // Vite default ports
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 app.use(express.json());
 
