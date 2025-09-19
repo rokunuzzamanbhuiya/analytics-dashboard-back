@@ -22,25 +22,46 @@ router.get('/', async (req, res) => {
     
     // Format orders into notification format
     const notifications = orders.map((order) => {
-      const notification = formatOrderForNotification(order);
-      // Apply stored state if exists
-      if (notificationStates[notification.id]) {
-        notification.read = notificationStates[notification.id].read;
-        notification.archived = notificationStates[notification.id].archived;
+      try {
+        const notification = formatOrderForNotification(order);
+        
+        // Check if notification was successfully created
+        if (!notification || !notification.id) {
+          console.error('❌ Invalid notification object:', notification);
+          return null;
+        }
+        
+        // Apply stored state if exists
+        if (notificationStates[notification.id]) {
+          notification.read = notificationStates[notification.id].read;
+          notification.archived = notificationStates[notification.id].archived;
+        }
+        return notification;
+      } catch (error) {
+        console.error('❌ Error formatting order:', order.id, error.message);
+        return null;
       }
-      return notification;
-    });
+    }).filter(Boolean); // Remove null entries
     
     // Sort by creation date (newest first)
     notifications.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     
     console.log("🔔 Notifications fetched:", notifications.length);
-    res.json(notifications);
+    res.json({
+      success: true,
+      data: notifications,
+      count: notifications.length
+    });
   } catch (err) {
     console.error("❌ Notifications Error:", err.response?.data || err.message);
+    console.error("❌ Error stack:", err.stack);
     res
       .status(500)
-      .json({ error: err.message, details: err.response?.data || null });
+      .json({ 
+        success: false,
+        error: err.message, 
+        details: err.response?.data || null 
+      });
   }
 });
 
