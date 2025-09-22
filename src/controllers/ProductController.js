@@ -56,15 +56,17 @@ class ProductController {
         .map(product => {
           // Find the variant with lowest stock (excluding -1 values)
           const trackedVariants = product.variants.filter(v => v.inventory_quantity !== -1);
-          const lowestStockVariant = trackedVariants.reduce((min, variant) => 
-            (variant.inventory_quantity < min.inventory_quantity) ? variant : min
-          );
+          const lowestStockVariant = trackedVariants.length > 0
+            ? trackedVariants.reduce((min, variant) => 
+              (variant.inventory_quantity < min.inventory_quantity) ? variant : min
+            )
+            : { inventory_quantity: null };
           
           return {
             id: product.id,
             name: product.title, // Frontend expects 'name'
             product_id: product.id, // Frontend expects 'product_id'
-            stock: lowestStockVariant.inventory_quantity, // Frontend expects 'stock'
+            stock: lowestStockVariant.inventory_quantity || 0, // Frontend expects 'stock'
             image: product.images && product.images.length > 0 ? product.images[0].src : null, // Frontend expects 'image'
             title: product.title,
             handle: product.handle,

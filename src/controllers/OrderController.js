@@ -21,7 +21,10 @@ class OrderController {
         status, 
         fulfillment_status
       );
-      const orders = data?.orders || [];
+      const rawOrders = data?.orders || [];
+      
+      // Transform orders for consistent response format
+      const orders = rawOrders.map(order => transformOrder(order, SHOPIFY_STORE_DOMAIN));
       
       console.log(`✅ Orders fetched: ${orders.length}`);
       

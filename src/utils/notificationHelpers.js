@@ -23,15 +23,13 @@ const formatOrderForNotification = (order) => {
     order_number: order.order_number,
     name: order.name,
     customer: customerName, // Front-end expects customer field
-    customer_name: customerName,
     customer_email: order.customer?.email || order.email,
     orderValue: order.total_price, // Front-end expects orderValue
     total_price: order.total_price,
     currency: order.currency,
     financial_status: order.financial_status,
     fulfillment_status: order.fulfillment_status,
-    createdAt: order.created_at, // Front-end expects createdAt
-    created_at: order.created_at,
+    created_at: order.created_at, // Consistent snake_case naming
     line_items_count: order.line_items?.length || 0,
     source: order.source_name || 'Unknown',
     read: false, // Default state
@@ -50,7 +48,7 @@ const createNewOrderNotification = (order) => {
     return 'New order received';
   }
 
-  return `New order #${formattedOrder.order_number} from ${formattedOrder.customer_name} - $${formattedOrder.total_price} ${formattedOrder.currency}`;
+  return `New order #${formattedOrder.order_number} from ${formattedOrder.customer} - $${formattedOrder.total_price} ${formattedOrder.currency}`;
 };
 
 /**

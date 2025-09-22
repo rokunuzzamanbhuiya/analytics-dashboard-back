@@ -1,6 +1,33 @@
 const axios = require('axios');
 const { SHOPIFY_STORE_DOMAIN, SHOPIFY_ADMIN_API_TOKEN, SHOPIFY_ADMIN_API_VERSION } = require('../config/shopify');
 
+// Order fields to fetch from Shopify API
+const ORDER_FIELDS = [
+  'id',
+  'order_number',
+  'name',
+  'email',
+  'phone',
+  'created_at',
+  'updated_at',
+  'processed_at',
+  'cancelled_at',
+  'closed_at',
+  'financial_status',
+  'fulfillment_status',
+  'total_price',
+  'subtotal_price',
+  'total_tax',
+  'currency',
+  'line_items',
+  'customer',
+  'shipping_address',
+  'billing_address',
+  'note',
+  'tags',
+  'source_name'
+];
+
 /**
  * Shopify API Service
  * Handles all interactions with the Shopify Admin API
@@ -137,7 +164,7 @@ class ShopifyService {
     const params = { 
       limit, 
       status,
-      fields: 'id,order_number,name,email,phone,created_at,updated_at,processed_at,cancelled_at,closed_at,financial_status,fulfillment_status,total_price,subtotal_price,total_tax,currency,line_items,customer,shipping_address,billing_address,note,tags,source_name'
+      fields: ORDER_FIELDS.join(',')
     };
     if (fulfillmentStatus) params.fulfillment_status = fulfillmentStatus;
     if (createdAtMin) params.created_at_min = createdAtMin;
@@ -146,7 +173,7 @@ class ShopifyService {
 
   async getOrder(orderId) {
     return this.get(`orders/${orderId}.json`, {
-      fields: 'id,order_number,name,email,phone,created_at,updated_at,processed_at,cancelled_at,closed_at,financial_status,fulfillment_status,total_price,subtotal_price,total_tax,currency,line_items,customer,shipping_address,billing_address,note,tags,source_name'
+      fields: ORDER_FIELDS.join(',')
     });
   }
 
