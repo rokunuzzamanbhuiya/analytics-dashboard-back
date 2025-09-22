@@ -1,6 +1,6 @@
 const ShopifyService = require('../services/ShopifyService');
-const { transformOrder, sortOrdersByDate } = require('../../utils/orderHelpers');
-const { SHOPIFY_STORE_DOMAIN } = require('../../config/shopify');
+const { transformOrder, sortOrdersByDate } = require('../utils/orderHelpers');
+const { SHOPIFY_STORE_DOMAIN } = require('../config/shopify');
 
 /**
  * Order Controller

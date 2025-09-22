@@ -1,6 +1,6 @@
 const ShopifyService = require('../services/ShopifyService');
-const { processLowStockProducts, calculateProductSales, getProductDetails } = require('../../utils/productHelpers');
-const { SHOPIFY_STORE_DOMAIN } = require('../../config/shopify');
+const { processLowStockProducts, calculateProductSales, getProductDetails } = require('../utils/productHelpers');
+const { SHOPIFY_STORE_DOMAIN } = require('../config/shopify');
 
 /**
  * Product Controller

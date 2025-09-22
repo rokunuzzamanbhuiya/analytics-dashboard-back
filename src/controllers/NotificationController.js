@@ -1,5 +1,5 @@
 const ShopifyService = require('../services/ShopifyService');
-const { formatOrderForNotification } = require('../../utils/notificationHelpers');
+const { formatOrderForNotification } = require('../utils/notificationHelpers');
 
 /**
  * Notification Controller
