@@ -81,14 +81,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/notifications', notificationRoutes);
 
-// Legacy route redirects for backward compatibility
-app.get('/api/best-selling', (req, res) => {
-  res.redirect(301, '/api/products/best-selling');
-});
-
-app.get('/api/worst-selling', (req, res) => {
-  res.redirect(301, '/api/products/worst-selling');
-});
+// Legacy route redirects removed - front-end now uses new endpoints directly
 
 // Root endpoint with API documentation
 app.get('/', (req, res) => {

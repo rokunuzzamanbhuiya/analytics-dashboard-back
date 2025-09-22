@@ -13,21 +13,27 @@ const formatOrderForNotification = (order) => {
     return null;
   }
 
+  const customerName = order.customer ? 
+    `${order.customer.first_name || ''} ${order.customer.last_name || ''}`.trim() : 
+    'Guest Customer';
+
   return {
     id: order.id,
+    orderId: order.id, // Front-end expects orderId
     order_number: order.order_number,
     name: order.name,
-    customer_name: order.customer ? 
-      `${order.customer.first_name || ''} ${order.customer.last_name || ''}`.trim() : 
-      'Guest Customer',
+    customer: customerName, // Front-end expects customer field
     customer_email: order.customer?.email || order.email,
+    orderValue: order.total_price, // Front-end expects orderValue
     total_price: order.total_price,
     currency: order.currency,
     financial_status: order.financial_status,
     fulfillment_status: order.fulfillment_status,
-    created_at: order.created_at,
+    created_at: order.created_at, // Consistent snake_case naming
     line_items_count: order.line_items?.length || 0,
-    source: order.source_name || 'Unknown'
+    source: order.source_name || 'Unknown',
+    read: false, // Default state
+    archived: false // Default state
   };
 };
 
@@ -42,7 +48,7 @@ const createNewOrderNotification = (order) => {
     return 'New order received';
   }
 
-  return `New order #${formattedOrder.order_number} from ${formattedOrder.customer_name} - $${formattedOrder.total_price} ${formattedOrder.currency}`;
+  return `New order #${formattedOrder.order_number} from ${formattedOrder.customer} - $${formattedOrder.total_price} ${formattedOrder.currency}`;
 };
 
 /**

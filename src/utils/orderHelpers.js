@@ -4,11 +4,32 @@
  */
 
 /**
+ * Generate order summary for display
+ * @param {Object} order - Order object
+ * @returns {string} Order summary
+ */
+const generateOrderSummary = (order) => {
+  if (!order || !order.line_items) {
+    return 'No items';
+  }
+
+  const itemCount = order.line_items.length;
+  const totalQuantity = order.line_items.reduce((sum, item) => sum + (item.quantity || 0), 0);
+  
+  if (itemCount === 1) {
+    const item = order.line_items[0];
+    return `${item.quantity}x ${item.title}`;
+  } else {
+    return `${totalQuantity} items across ${itemCount} products`;
+  }
+};
+
+/**
  * Transform order data for API response
  * @param {Object} order - Raw order object from Shopify
  * @returns {Object} Transformed order object
  */
-const transformOrder = (order) => {
+const transformOrder = (order, storeDomain) => {
   if (!order) {
     return null;
   }
@@ -31,16 +52,26 @@ const transformOrder = (order) => {
     financial_status: order.financial_status,
     fulfillment_status: order.fulfillment_status,
     total_price: order.total_price,
+    value: order.total_price, // Front-end expects 'value' field
     subtotal_price: order.subtotal_price,
     total_tax: order.total_tax,
     currency: order.currency,
+    admin_url: storeDomain ? `https://${storeDomain}/admin/orders/${order.id}` : null,
     customer: order.customer ? {
       id: order.customer.id,
       email: order.customer.email,
       first_name: order.customer.first_name,
       last_name: order.customer.last_name,
+      name: `${order.customer.first_name || ''} ${order.customer.last_name || ''}`.trim() || 'Guest Customer',
       phone: order.customer.phone
-    } : null,
+    } : {
+      id: null,
+      email: order.email || null,
+      first_name: null,
+      last_name: null,
+      name: order.email ? `Guest (${order.email})` : 'Guest Customer',
+      phone: order.phone || null
+    },
     line_items: lineItems.map(item => ({
       id: item.id,
       title: item.title,
@@ -78,7 +109,8 @@ const transformOrder = (order) => {
     },
     note: order.note,
     tags: order.tags,
-    source_name: order.source_name
+    source_name: order.source_name,
+    summary: generateOrderSummary(order) // Front-end expects 'summary' field
   };
 };
 
@@ -198,6 +230,7 @@ const getOrdersInDateRange = (orders, startDate, endDate) => {
 };
 
 module.exports = {
+  generateOrderSummary,
   transformOrder,
   sortOrdersByDate,
   filterOrdersByStatus,
