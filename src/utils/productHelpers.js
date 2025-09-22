@@ -20,38 +20,52 @@ const processLowStockProducts = (products, threshold = 10) => {
     }
 
     return product.variants.some(variant => {
-      const inventory = variant.inventory_quantity || 0;
+      const inventory = variant.inventory_quantity;
+      
+      // Handle different inventory states:
+      // -1: Inventory tracking disabled (treat as unlimited stock, don't include)
+      // 0: Out of stock (include)
+      // > 0: Limited stock (include if <= threshold)
+      if (inventory === -1) {
+        return false; // Skip products with disabled inventory tracking
+      }
+      
       return inventory <= threshold && inventory >= 0;
     });
   });
 };
 
 /**
- * Calculate product sales data
- * @param {Array} products - Array of products
- * @returns {Array} Array of products with sales data
+ * Calculate product sales data from orders
+ * @param {Array} orders - Array of orders
+ * @returns {Object} Object with product sales data
  */
-const calculateProductSales = (products) => {
-  if (!Array.isArray(products)) {
-    return [];
+const calculateProductSales = (orders) => {
+  if (!Array.isArray(orders)) {
+    return {};
   }
 
-  return products.map(product => {
-    const totalSales = product.variants?.reduce((sum, variant) => {
-      return sum + (variant.price || 0);
-    }, 0) || 0;
+  const productSales = {};
 
-    const averagePrice = product.variants?.length > 0 
-      ? totalSales / product.variants.length 
-      : 0;
-
-    return {
-      ...product,
-      totalSales,
-      averagePrice,
-      variantCount: product.variants?.length || 0
-    };
+  orders.forEach(order => {
+    if (order.line_items && Array.isArray(order.line_items)) {
+      order.line_items.forEach(item => {
+        const productId = item.product_id;
+        if (productId) {
+          if (!productSales[productId]) {
+            productSales[productId] = {
+              quantity: 0,
+              revenue: 0
+            };
+          }
+          productSales[productId].quantity += item.quantity || 0;
+          productSales[productId].revenue += (item.price || 0) * (item.quantity || 0);
+        }
+      });
+    }
   });
+
+  return productSales;
 };
 
 /**
@@ -107,36 +121,8 @@ const getProductDetails = (product) => {
   };
 };
 
-/**
- * Sort products by sales (best selling)
- * @param {Array} products - Array of products
- * @returns {Array} Sorted products (best selling first)
- */
-const sortProductsBySales = (products) => {
-  return products.sort((a, b) => {
-    const aSales = a.totalSales || 0;
-    const bSales = b.totalSales || 0;
-    return bSales - aSales;
-  });
-};
-
-/**
- * Sort products by sales (worst selling)
- * @param {Array} products - Array of products
- * @returns {Array} Sorted products (worst selling first)
- */
-const sortProductsByWorstSales = (products) => {
-  return products.sort((a, b) => {
-    const aSales = a.totalSales || 0;
-    const bSales = b.totalSales || 0;
-    return aSales - bSales;
-  });
-};
-
 module.exports = {
   processLowStockProducts,
   calculateProductSales,
-  getProductDetails,
-  sortProductsBySales,
-  sortProductsByWorstSales
+  getProductDetails
 };

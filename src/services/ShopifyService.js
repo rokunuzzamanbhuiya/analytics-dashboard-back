@@ -1,5 +1,5 @@
 const axios = require('axios');
-const { SHOPIFY_STORE_DOMAIN, SHOPIFY_ADMIN_API_TOKEN, SHOPIFY_ADMIN_API_VERSION } = require('../../config/shopify');
+const { SHOPIFY_STORE_DOMAIN, SHOPIFY_ADMIN_API_TOKEN, SHOPIFY_ADMIN_API_VERSION } = require('../config/shopify');
 
 /**
  * Shopify API Service
@@ -134,14 +134,20 @@ class ShopifyService {
 
   // Orders API methods
   async getOrders(limit = 250, status = 'any', fulfillmentStatus = null, createdAtMin = null) {
-    const params = { limit, status };
+    const params = { 
+      limit, 
+      status,
+      fields: 'id,order_number,name,email,phone,created_at,updated_at,processed_at,cancelled_at,closed_at,financial_status,fulfillment_status,total_price,subtotal_price,total_tax,currency,line_items,customer,shipping_address,billing_address,note,tags,source_name'
+    };
     if (fulfillmentStatus) params.fulfillment_status = fulfillmentStatus;
     if (createdAtMin) params.created_at_min = createdAtMin;
     return this.get('orders.json', params);
   }
 
   async getOrder(orderId) {
-    return this.get(`orders/${orderId}.json`);
+    return this.get(`orders/${orderId}.json`, {
+      fields: 'id,order_number,name,email,phone,created_at,updated_at,processed_at,cancelled_at,closed_at,financial_status,fulfillment_status,total_price,subtotal_price,total_tax,currency,line_items,customer,shipping_address,billing_address,note,tags,source_name'
+    });
   }
 
   // Customers API methods

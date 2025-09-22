@@ -13,21 +13,29 @@ const formatOrderForNotification = (order) => {
     return null;
   }
 
+  const customerName = order.customer ? 
+    `${order.customer.first_name || ''} ${order.customer.last_name || ''}`.trim() : 
+    'Guest Customer';
+
   return {
     id: order.id,
+    orderId: order.id, // Front-end expects orderId
     order_number: order.order_number,
     name: order.name,
-    customer_name: order.customer ? 
-      `${order.customer.first_name || ''} ${order.customer.last_name || ''}`.trim() : 
-      'Guest Customer',
+    customer: customerName, // Front-end expects customer field
+    customer_name: customerName,
     customer_email: order.customer?.email || order.email,
+    orderValue: order.total_price, // Front-end expects orderValue
     total_price: order.total_price,
     currency: order.currency,
     financial_status: order.financial_status,
     fulfillment_status: order.fulfillment_status,
+    createdAt: order.created_at, // Front-end expects createdAt
     created_at: order.created_at,
     line_items_count: order.line_items?.length || 0,
-    source: order.source_name || 'Unknown'
+    source: order.source_name || 'Unknown',
+    read: false, // Default state
+    archived: false // Default state
   };
 };
 

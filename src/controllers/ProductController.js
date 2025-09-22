@@ -52,8 +52,36 @@ class ProductController {
       const data = await ShopifyService.getProducts(50);
       const products = data?.products || [];
       
-      const lowStockProducts = processLowStockProducts(products, SHOPIFY_STORE_DOMAIN)
-        .filter(product => product.stock <= parseInt(threshold));
+      const lowStockProducts = processLowStockProducts(products, parseInt(threshold))
+        .map(product => {
+          // Find the variant with lowest stock (excluding -1 values)
+          const trackedVariants = product.variants.filter(v => v.inventory_quantity !== -1);
+          const lowestStockVariant = trackedVariants.reduce((min, variant) => 
+            (variant.inventory_quantity < min.inventory_quantity) ? variant : min
+          );
+          
+          return {
+            id: product.id,
+            name: product.title, // Frontend expects 'name'
+            product_id: product.id, // Frontend expects 'product_id'
+            stock: lowestStockVariant.inventory_quantity, // Frontend expects 'stock'
+            image: product.images && product.images.length > 0 ? product.images[0].src : null, // Frontend expects 'image'
+            title: product.title,
+            handle: product.handle,
+            vendor: product.vendor,
+            product_type: product.product_type,
+            status: product.status,
+            variants: product.variants.map(variant => ({
+              id: variant.id,
+              title: variant.title,
+              price: variant.price,
+              inventory_quantity: variant.inventory_quantity === -1 ? 'Unlimited' : variant.inventory_quantity,
+              sku: variant.sku
+            })),
+            admin_url: `https://${SHOPIFY_STORE_DOMAIN}/admin/products/${product.id}`,
+            public_url: `https://${SHOPIFY_STORE_DOMAIN}/products/${product.handle}`
+          };
+        });
       
       console.log(`✅ Low stock products: ${lowStockProducts.length}`);
       
@@ -103,9 +131,9 @@ class ProductController {
         public_url: `https://${SHOPIFY_STORE_DOMAIN}/products/${product.handle}`
       }));
       
-      // Filter out products with 0 sales and sort by quantity (descending) to get best-selling first
-      const productsWithSalesOnly = productsWithSales.filter(product => product.total_sold > 0);
-      const sorted = productsWithSalesOnly.sort((a, b) => b.total_sold - a.total_sold);
+      // Sort by quantity (descending) to get best-selling first
+      // Include products with 0 sales to show all products
+      const sorted = productsWithSales.sort((a, b) => b.total_sold - a.total_sold);
       
       // Return top products (best-selling)
       const result = sorted.slice(0, parseInt(limit));

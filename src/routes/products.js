@@ -22,7 +22,7 @@ router.get('/',
 // GET /api/products/low-stock - Get low stock products
 router.get('/low-stock',
   validateQueryParams({
-    threshold: { type: 'number', min: 1, max: 100, required: false }
+    threshold: { type: 'number', min: 0, max: 100, required: false }
   }),
   asyncHandler(ProductController.getLowStockProducts)
 );
