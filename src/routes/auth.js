@@ -1,6 +1,13 @@
 const express = require('express');
 const axios = require('axios');
 const router = express.Router();
+const shopifyService = require('../services/ShopifyService');
+
+// Test endpoint for backend logging
+router.get('/test-log', (req, res) => {
+  console.log('✅ Test endpoint hit');
+  res.send('Test ok');
+});
 
 // OAuth-only authentication - no manual login/registration
 
@@ -53,8 +60,8 @@ router.get('/shopify-callback', async (req, res) => {
     }
 
     // Use hardcoded values for testing
-    const apiKey = 'ea188c8a8b8b8b8b8b8b8b8b8b8b8b8b'; // Replace with your actual API key
-    const apiSecret = 'your_api_secret_here'; // Replace with your actual API secret
+    const apiKey = process.env.SHOPIFY_API_KEY;
+    const apiSecret = process.env.SHOPIFY_API_SECRET;
 
     if (!apiKey || !apiSecret) {
       return res.redirect('http://localhost:5173/?error=configuration_missing');
@@ -68,7 +75,7 @@ router.get('/shopify-callback', async (req, res) => {
     });
 
     const { access_token } = tokenResponse.data;
-
+    console.log('✅ Received access token:', access_token);
     // Fetch user information
     const userResponse = await axios.get(`https://${shop}/admin/api/2023-10/users/current.json`, {
       headers: {
@@ -98,7 +105,12 @@ router.get('/shopify-callback', async (req, res) => {
     res.redirect(`http://localhost:5173/?login=success&user=${encodedUserData}`);
 
   } catch (error) {
-    console.error('OAuth callback error:', error);
+    console.error('OAuth callback error:', {
+      message: error.message,
+      status: error.response?.status,
+      responseData: error.response?.data,
+      requestConfig: error.config
+    });
     res.redirect(`http://localhost:5173/?error=${encodeURIComponent(error.message)}`);
   }
 });
@@ -194,6 +206,31 @@ router.get('/verify', async (req, res) => {
       error: 'Invalid access token',
       details: error.response?.data || error.message
     });
+  }
+});
+
+// Email-only login endpoint
+router.post('/email-login', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email || typeof email !== 'string' || !email.includes('@')) {
+      return res.status(400).json({ hasAccess: false, message: 'Invalid email.' });
+    }
+    const allowedEmail = 'abir.blinto@gmail.com';
+    if (email.trim().toLowerCase() !== allowedEmail) {
+      return res.json({ hasAccess: false, message: 'No access for this email.' });
+    }
+    // Compose user info as needed
+    const user = {
+      email: allowedEmail,
+      first_name: 'Abir',
+      last_name: '',
+      hasAccess: true
+    };
+    res.json({ hasAccess: true, user });
+  } catch (err) {
+    console.error('Email login error:', err);
+    res.status(500).json({ hasAccess: false, message: 'Internal server error' });
   }
 });
 
