@@ -196,6 +196,13 @@ class ShopifyService {
     return this.get('users/current.json');
   }
 
+  // Staff/User API methods
+  async getAllStaffUsers() {
+    // Returns all staff users from Shopify Admin API
+    // /admin/api/<version>/users.json (requires Plus & read_users access)
+    return this.get('users.json');
+  }
+
   /**
    * Handle API errors with proper formatting
    * @param {Error} error - The error object
